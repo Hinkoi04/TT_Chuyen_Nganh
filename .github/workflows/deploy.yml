@@ -20,4 +20,4 @@ jobs:
           username: ${{ secrets.INFINITY_FTP_USER }}
           password: ${{ secrets.INFINITY_FTP_PASS }}
           local-dir: ./
-          server-dir: /manguonmothu3ca2.rf.gd/htdocs/
+          server-dir: /hinlaptop.rf.gd/htdocs/
