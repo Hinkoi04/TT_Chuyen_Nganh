@@ -11,8 +11,15 @@ function dinh_dang_gia($gia) {
 }
 
 function chuyen_trang($url) {
-    $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/user');
-    header("Location: {$base}{$url}");
+    // luôn redirect từ gốc website
+    $root = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+
+    // Nếu đang ở host (gốc), $root sẽ là ""
+    if ($root === '/' || $root === '\\') {
+        $root = '';
+    }
+
+    header("Location: {$root}{$url}");
     exit();
 }
 

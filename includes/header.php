@@ -59,25 +59,23 @@ $categories = $conn->query("SELECT * FROM categories ORDER BY name ASC");
             <!-- THANH TÌM KIẾM -->
             <form class="form-inline mx-auto" action="<?= $basePath ?>/user/search.php" method="get">
 
-                <select class="form-control mr-2 rounded-pill text-light bg-primary"
-                        name="cate" style="width:19vh;">
+                <select class="form-control mr-2 rounded-pill text-primary bg-light"
+                        name="cate" style="width:auto;">
                     <option value="">☰ Danh mục</option>
 
                     <?php while($cat = $categories->fetch_assoc()): ?>
                         <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></option>
                     <?php endwhile; ?>
-
                 </select>
 
                 <div class="search-group d-flex align-items-center mr-2">
                     <input class="form-control rounded-pill search-input text-primary"
-                           type="text" name="q" placeholder="Nhập tên sản phẩm..." required>
+                            type="text" name="q" placeholder="Nhập tên sản phẩm..." required>
 
                     <button class="btn btn-outline-primary rounded-circle search-btn" type="submit">
                         <ion-icon name="search-outline" style="font-size:18px;"></ion-icon>
                     </button>
                 </div>
-
             </form>
 
             <!-- MENU PHẢI -->
