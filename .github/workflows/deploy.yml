@@ -1,0 +1,23 @@
+name: Deploy to InfinityFree
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Upload to InfinityFree via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.3
+        with:
+          server: ftpupload.net
+          username: ${{ secrets.INFINITY_FTP_USER }}
+          password: ${{ secrets.INFINITY_FTP_PASS }}
+          local-dir: ./
+          server-dir: /hinlaptop.rf.gd/htdocs/
