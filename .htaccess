@@ -1,0 +1,15 @@
+Options +FollowSymLinks
+RewriteEngine On
+
+# ⚠️ Sửa đúng TÊN thư mục dự án của bạn
+RewriteBase /TT_Chuyen_Nganh/
+
+# Mặc định chạy file user/index.php
+DirectoryIndex user/index.php
+
+# Truy cập root → chuyển hướng vào user/index.php
+RewriteRule ^$ user/index.php [L]
+
+# Không rewrite nếu file tồn tại
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
