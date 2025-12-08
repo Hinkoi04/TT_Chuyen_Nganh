@@ -3,7 +3,6 @@
 if (!defined('BASE_URL')) {
     define('BASE_URL', '/TT_Chuyen_Nganh');
 }
-
 $servername = "localhost";
 $username = "root";
 $password = "";

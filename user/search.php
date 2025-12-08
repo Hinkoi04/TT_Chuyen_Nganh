@@ -94,7 +94,6 @@ $result = tim_kiem_san_pham($q, $cate);
             </div>
 
         <?php endif; ?>
-
     </div>
 
 </div>

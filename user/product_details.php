@@ -141,7 +141,6 @@ $stmt->close();
                max="<?= $product['stock_quantity'] ?>"
                class="form-control d-inline-block"
                style="width: 100px;">
-
         <button class="btn btn-primary mt-2">🛒 Thêm vào giỏ hàng</button>
         <a href="index.php" class="btn btn-secondary mt-2">⬅ Quay lại</a>
     </form>

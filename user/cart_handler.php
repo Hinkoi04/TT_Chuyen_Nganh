@@ -73,5 +73,4 @@ switch ($action) {
 
 }
 
-/* ---------- CHUYỂN VỀ GIỎ HÀNG ---------- */
 chuyen_trang(BASE_URL . '/user/cart.php');

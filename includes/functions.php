@@ -331,7 +331,6 @@ function dong_bo_gio_hang($user_id) {
             $_SESSION['cart'][$pid]['qty'] += $qty;
         }
     }
-
     // Xóa cart cũ trong DB
     $del = $conn->prepare("DELETE FROM user_carts WHERE user_id = ?");
     $del->bind_param("i", $user_id);

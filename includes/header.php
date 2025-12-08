@@ -88,7 +88,6 @@ $categories = $conn->query("SELECT * FROM categories ORDER BY name ASC");
                         Giỏ hàng
                     </a>
                 </li>
-
                 <?php if (!empty($_SESSION['user_id'])): ?>
 
                     <!-- XIN CHÀO USER -->

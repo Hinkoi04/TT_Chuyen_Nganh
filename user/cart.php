@@ -15,7 +15,6 @@ if (!empty($_SESSION['cart'])) {
     }
 }
 ?>
-
 <div class="container col-10">
 
     <!-- Thông báo lỗi -->

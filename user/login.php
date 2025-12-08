@@ -80,7 +80,6 @@ require_once __DIR__ . '/../includes/header.php';
             Bạn chưa có tài khoản?  
             <a href="/TT_Chuyen_Nganh/user/register.php">Đăng ký ngay</a>
         </p>
-
     </form>
 </div>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

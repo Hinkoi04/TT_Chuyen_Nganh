@@ -41,7 +41,6 @@ $latest = lay_san_pham_moi_nhat(4);
         </div>
         <?php $active = ''; endwhile; ?>
     </div>
-
     <a class="carousel-control-prev" href="#bannerSlider" role="button" data-slide="prev">
         <span class="carousel-control-prev-icon"></span>
     </a>
