@@ -11,17 +11,29 @@ function dinh_dang_gia($gia) {
 }
 
 function chuyen_trang($url) {
-    // luôn redirect từ gốc website
-    $root = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
-
-    // Nếu đang ở host (gốc), $root sẽ là ""
-    if ($root === '/' || $root === '\\') {
-        $root = '';
+    // Nếu URL đã bắt đầu bằng http hoặc https → chuyển luôn
+    if (preg_match('/^https?:\/\//', $url)) {
+        header("Location: $url");
+        exit;
     }
 
-    header("Location: {$root}{$url}");
-    exit();
+    // Nếu URL bắt đầu bằng BASE_URL → không gắn BASE_URL nữa
+    if (str_starts_with($url, BASE_URL)) {
+        header("Location: $url");
+        exit;
+    }
+
+    // Nếu URL bắt đầu bằng "/" → gắn BASE_URL vào trước
+    if (str_starts_with($url, '/')) {
+        header("Location: " . BASE_URL . $url);
+        exit;
+    }
+
+    // Mặc định (trường hợp hiếm)
+    header("Location: " . BASE_URL . "/" . ltrim($url, '/'));
+    exit;
 }
+
 
 
 /* NHOM HAM DANH MUC */
@@ -210,12 +222,28 @@ function lay_so_luong_ton($product_id) {
     return $stmt->get_result()->fetch_assoc()['stock_quantity'] ?? 0;
 }
 
-function them_vao_gio($product_id, $qty = 1) {
-    if (!isset($_SESSION['cart'][$product_id])) {
-        $_SESSION['cart'][$product_id] = 0;
+function them_vao_gio($id, $qty = 1)
+{
+    if (!isset($_SESSION['cart'])) {
+        $_SESSION['cart'] = [];
     }
-    $_SESSION['cart'][$product_id] += $qty;
+
+    // Nếu sản phẩm đã tồn tại trong giỏ → tăng số lượng
+    if (isset($_SESSION['cart'][$id])) {
+
+        // Nếu là kiểu cũ (chỉ số), chuyển thành dạng mảng
+        if (!is_array($_SESSION['cart'][$id])) {
+            $_SESSION['cart'][$id] = ['qty' => intval($_SESSION['cart'][$id])];
+        }
+
+        $_SESSION['cart'][$id]['qty'] += $qty;
+    } 
+    else {
+        // Thêm sản phẩm mới
+        $_SESSION['cart'][$id] = ['qty' => $qty];
+    }
 }
+
 
 function xoa_khoi_gio($product_id) {
     unset($_SESSION['cart'][$product_id]);
@@ -318,4 +346,17 @@ function dong_bo_gio_hang($user_id) {
     }
     $insert->close();
 }
+function lay_san_pham_moi_nhat($limit = 4) {
+    global $conn;
+    $sql = "SELECT p.*, c.name AS category_name
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.id
+            ORDER BY p.id DESC
+            LIMIT ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $limit);
+    $stmt->execute();
+    return $stmt->get_result();
+}
+
 ?>

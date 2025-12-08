@@ -6,8 +6,8 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/functions.php';
 
-/* Tự động xác định thư mục gốc (base path) */
-$basePath = "" . basename(dirname(__DIR__));
+/* Sửa đúng đường dẫn gốc */
+$basePath = '/TT_Chuyen_Nganh';
 
 /* Lấy danh mục cho menu */
 $categories = $conn->query("SELECT * FROM categories ORDER BY name ASC");

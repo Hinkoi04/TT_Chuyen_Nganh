@@ -24,7 +24,7 @@
                     <ion-icon name="accessibility-outline" style="font-size:20px;vertical-align:middle;"></ion-icon> Quản lý Người dùng</a>
                 <a href="banner.php" class="list-group-item list-group-item-action bg-primary text-light">
                     <ion-icon name="image-outline" style="font-size:20px;vertical-align:middle;"></ion-icon> Quản lý Banner</a>
-                <a href="../logout.php" class="list-group-item list-group-item-action text-danger text-center bg-primary">
+                <a href="../user/logout.php" class="list-group-item list-group-item-action text-danger text-center bg-primary">
                     <ion-icon name="exit-outline" style="font-size:20px;vertical-align:middle;"></ion-icon> Đăng xuất</a>
             </div>
         </nav>

@@ -1,31 +1,41 @@
 <?php
-require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-/* KIỂM TRA ĐĂNG NHẬP */
+if (!defined('BASE_URL')) {
+    define('BASE_URL', '/TT_Chuyen_Nganh');
+}
+
+/* =============================
+   KIỂM TRA ĐĂNG NHẬP & GIỎ HÀNG
+   (PHẢI ĐẶT TRƯỚC HEADER)
+============================= */
+
 if (!isset($_SESSION['user_id'])) {
     chuyen_trang('/user/login.php');
 }
 
-/* KIỂM TRA GIỎ HÀNG */
 if (empty($_SESSION['cart'])) {
     chuyen_trang('/user/index.php');
 }
 
 $checkout_message = "";
 
-/* XỬ LÝ ĐẶT HÀNG */
+/* =============================
+   XỬ LÝ ĐẶT HÀNG (POST)
+============================= */
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $customer_name    = trim($_POST['customer_name']);
     $customer_address = trim($_POST['customer_address']);
     $customer_phone   = trim($_POST['customer_phone']);
-    $user_id = $_SESSION['user_id'];
+    $user_id          = $_SESSION['user_id'];
 
     $cart = $_SESSION['cart'];
     $product_ids = implode(",", array_keys($cart));
 
-    /* LẤY GIÁ SẢN PHẨM */
+    // Lấy giá sản phẩm
     $sql = "SELECT id, price FROM products WHERE id IN ($product_ids)";
     $result = $conn->query($sql);
 
@@ -35,12 +45,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $total_amount += $p['price'] * $qty;
     }
 
-    /* BẮT ĐẦU GIAO DỊCH */
+    // Bắt đầu transaction
     $conn->begin_transaction();
 
     try {
 
-        /* TẠO ĐƠN HÀNG */
+        // Tạo đơn hàng
         $stmt = $conn->prepare("
             INSERT INTO orders (user_id, total_amount, customer_name, customer_address, customer_phone)
             VALUES (?, ?, ?, ?, ?)
@@ -50,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $order_id = $conn->insert_id;
         $stmt->close();
 
-        /* LƯU CHI TIẾT ĐƠN HÀNG */
+        // Thêm chi tiết đơn hàng
         $stmt_detail = $conn->prepare("
             INSERT INTO order_details (order_id, product_id, quantity, price)
             VALUES (?, ?, ?, ?)
@@ -68,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $stmt_detail->close();
 
-        /* XÓA GIỎ HÀNG */
+        // Xóa giỏ hàng session và DB
         unset($_SESSION['cart']);
 
         $clear = $conn->prepare("DELETE FROM user_carts WHERE user_id = ?");
@@ -78,17 +88,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $conn->commit();
 
-        $checkout_message = "<div class='alert alert-success text-center'>
-                                ✔ Đặt hàng thành công! Cảm ơn bạn đã mua sắm.
-                             </div>";
+        $checkout_message = "
+            <div class='alert alert-success text-center'>
+                ✔ Đặt hàng thành công! Cảm ơn bạn đã mua sắm.
+            </div>
+        ";
 
     } catch (Exception $e) {
+
         $conn->rollback();
-        $checkout_message = "<div class='alert alert-danger text-center'>
-                                ❌ Đã xảy ra lỗi, vui lòng thử lại.
-                             </div>";
+
+        $checkout_message = "
+            <div class='alert alert-danger text-center'>
+                ❌ Đã xảy ra lỗi, vui lòng thử lại.
+            </div>
+        ";
     }
 }
+
+/* =============================
+   GỌI HEADER SAU KHI MỌI REDIRECT ĐÃ HOÀN TẤT
+============================= */
+require_once __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="container col-md-6 col-sm-10">

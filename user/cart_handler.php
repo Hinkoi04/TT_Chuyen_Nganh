@@ -25,7 +25,7 @@ switch ($action) {
 
             if (!kiem_tra_ton_kho($product_id)) {
                 $_SESSION['cart_error'] = "❌ Sản phẩm đã hết hàng!";
-                chuyen_trang('/user/index.php');
+                chuyen_trang(BASE_URL . '/user/index.php');
             }
 
             them_vao_gio($product_id, 1);
@@ -74,4 +74,4 @@ switch ($action) {
 }
 
 /* ---------- CHUYỂN VỀ GIỎ HÀNG ---------- */
-chuyen_trang('/user/cart.php');
+chuyen_trang(BASE_URL . '/user/cart.php');
