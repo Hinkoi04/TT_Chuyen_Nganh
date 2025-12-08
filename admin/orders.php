@@ -65,7 +65,6 @@ $page_content = '
         </thead>
         <tbody>
 ';
-
 while ($row = $result->fetch_assoc()) {
 
     $status = htmlspecialchars($row['status']);

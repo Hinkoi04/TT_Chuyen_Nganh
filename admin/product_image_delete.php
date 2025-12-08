@@ -28,7 +28,6 @@ $stmt_del = $conn->prepare("DELETE FROM product_images WHERE id=?");
 $stmt_del->bind_param("i", $image_id);
 $stmt_del->execute();
 $stmt_del->close();
-
 // quay lại trang sửa sản phẩm
 header("Location: product_edit.php?id=" . $product_id . "&deleted=1");
 exit();

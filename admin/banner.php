@@ -133,7 +133,6 @@ if ($banners->num_rows > 0) {
         </div>
     ';
 }
-
 $page_content .= "</div>";
 
 include "index.php";

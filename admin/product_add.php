@@ -86,7 +86,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $message = "<div class='alert alert-success mt-3'>✅ Thêm sản phẩm thành công!</div>";
         header("Location: products.php?msg=added");
     exit();
-
     } else {
         $message = "<div class='alert alert-danger mt-3'>❌ Lỗi: {$stmt->error}</div>";
     }

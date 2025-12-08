@@ -23,7 +23,6 @@ $page_content = '
         </thead>
         <tbody>
 ';
-
 while ($row = $result->fetch_assoc()) {
     $id      = $row['id'];
     $name    = htmlspecialchars($row['name']);

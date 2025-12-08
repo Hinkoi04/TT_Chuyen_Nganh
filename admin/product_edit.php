@@ -71,9 +71,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 }
 
-// =======================
-//  LẤY SẢN PHẨM
-// =======================
 $stmt = $conn->prepare("SELECT * FROM products WHERE id=?");
 $stmt->bind_param("i", $id);
 $stmt->execute();

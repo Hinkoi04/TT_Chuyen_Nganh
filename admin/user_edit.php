@@ -53,5 +53,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <a href="users.php" class="btn btn-secondary">Hủy</a>
   </form>
 </div>
+
 </body>
 </html>
