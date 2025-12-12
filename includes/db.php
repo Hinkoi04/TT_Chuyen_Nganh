@@ -1,22 +1,14 @@
 <?php
-/* Định nghĩa đường dẫn gốc */
-if (!defined('BASE_URL')) {
-    define('BASE_URL', '/TT_Chuyen_Nganh');
-}
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "laptop_store";
+$dsn = "mysql:host=localhost;dbname=laptop_store;charset=utf8";
+$user = "root";
+$pass = "";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+try {
+    $pdo = new PDO($dsn, $user, $pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    
+} catch (PDOException $e) {
+    die("<p style='color:red'>Lỗi kết nối CSDL! </p>" . $e->getMessage());
 }
 
-$conn->set_charset("utf8mb4");
-
-/* Khởi động session nếu chưa có */
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
+?>

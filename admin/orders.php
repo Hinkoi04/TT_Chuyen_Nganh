@@ -2,76 +2,68 @@
 require_once 'auth_check.php';
 require_once '../includes/db.php';
 
-/* =======================
-   XỬ LÝ CẬP NHẬT TRẠNG THÁI
-   ======================= */
 if (isset($_GET['done'])) {
     $id = intval($_GET['done']);
 
-    $stmt = $conn->prepare("UPDATE orders SET status = 'Đã giao' WHERE id = ?");
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
-    $stmt->close();
+    $stmt = $pdo->prepare("UPDATE orders SET status = 'Đã giao' WHERE id = ?");
+    $stmt->execute([$id]);
 
     header("Location: orders.php");
-    exit();
+    exit;
 }
 
 if (isset($_GET['cancel'])) {
     $id = intval($_GET['cancel']);
 
-    // Xóa chi tiết đơn hàng
-    $delDetail = $conn->prepare("DELETE FROM order_details WHERE order_id = ?");
-    $delDetail->bind_param("i", $id);
-    $delDetail->execute();
+    $pdo->beginTransaction();
+    try {
+        $stmt1 = $pdo->prepare("DELETE FROM order_details WHERE order_id = ?");
+        $stmt1->execute([$id]);
 
-    // Xóa đơn hàng
-    $delOrder = $conn->prepare("DELETE FROM orders WHERE id = ?");
-    $delOrder->bind_param("i", $id);
-    $delOrder->execute();
+        $stmt2 = $pdo->prepare("DELETE FROM orders WHERE id = ?");
+        $stmt2->execute([$id]);
+
+        $pdo->commit();
+    } catch (Exception $e) {
+        $pdo->rollBack();
+    }
 
     header("Location: orders.php");
-    exit();
+    exit;
 }
 
-/* =======================
-   LẤY DANH SÁCH ĐƠN HÀNG
-   ======================= */
-$sql = "SELECT id, customer_name, total_amount, order_date, status 
-        FROM orders 
-        ORDER BY order_date DESC";
-
-$result = $conn->query($sql);
-
-/* =======================
-   GIAO DIỆN TRANG
-   ======================= */
+$stmt = $pdo->query("
+    SELECT id, customer_name, total_amount, order_date, status
+    FROM orders
+    ORDER BY order_date DESC
+");
+$orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $page_title = "Quản lý Đơn hàng";
 
 $page_content = '
-    <h1 class="text-center mb-4">Danh sách Đơn hàng</h1>
+<h1 class="text-center mb-4">Danh sách Đơn hàng</h1>
 
-    <table class="table table-bordered table-hover text-center">
-        <thead class="thead bg-primary text-white">
-            <tr>
-                <th>ID</th>
-                <th>Khách hàng</th>
-                <th>Tổng tiền</th>
-                <th>Ngày đặt</th>
-                <th>Trạng thái</th>
-                <th>Hành động</th>
-            </tr>
-        </thead>
-        <tbody>
+<table class="table table-bordered table-hover text-center">
+    <thead class="thead bg-primary text-white">
+        <tr>
+            <th>ID</th>
+            <th>Khách hàng</th>
+            <th>Tổng tiền</th>
+            <th>Ngày đặt</th>
+            <th>Trạng thái</th>
+            <th>Hành động</th>
+        </tr>
+    </thead>
+    <tbody>
 ';
-while ($row = $result->fetch_assoc()) {
+
+foreach ($orders as $row) {
 
     $status = htmlspecialchars($row['status']);
     $actions = '';
 
-    // Nếu đơn đang xử lý → Hiển thị nút
-    if ($status === "Đang xử lý") {
+    if ($status === 'Đang xử lý') {
         $actions = '
             <a href="?done=' . $row['id'] . '" 
                class="btn btn-success btn-sm"
@@ -81,7 +73,7 @@ while ($row = $result->fetch_assoc()) {
 
             <a href="?cancel=' . $row['id'] . '" 
                class="btn btn-danger btn-sm ml-2"
-               onclick="return confirm(\'Bạn chắc muốn hủy đơn hàng này? Sau khi hủy sẽ bị xóa khỏi hệ thống!\')">
+               onclick="return confirm(\'Bạn chắc muốn hủy đơn hàng này?\')">
                Hủy đơn
             </a>
         ';
@@ -95,16 +87,15 @@ while ($row = $result->fetch_assoc()) {
             <td>" . htmlspecialchars($row['customer_name']) . "</td>
             <td>" . number_format($row['total_amount']) . " VNĐ</td>
             <td>{$row['order_date']}</td>
-            <td>$status</td>
-            <td>$actions</td>
+            <td>{$status}</td>
+            <td>{$actions}</td>
         </tr>
     ";
 }
 
 $page_content .= '
-        </tbody>
-    </table>
+    </tbody>
+</table>
 ';
 
 include "index.php";
-?>

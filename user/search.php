@@ -1,61 +1,71 @@
 <?php
-require_once __DIR__ . '/../includes/header.php';
-require_once __DIR__ . '/../includes/db.php';
-require_once __DIR__ . '/../includes/functions.php';
-
-if (!defined('BASE_URL')) {
-    define('BASE_URL', '/TT_Chuyen_Nganh');
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
-/* Lấy dữ liệu từ URL */
+require_once "../includes/db.php";
+require_once "../includes/functions.php";
+
 $q    = trim($_GET['q'] ?? '');
 $cate = intval($_GET['cate'] ?? 0);
 
-/* Lấy tên danh mục nếu có */
-$cateName = '';
+/* LẤY TÊN DANH MỤC */
+$cateName = "";
 if ($cate > 0) {
-    $dm = lay_danh_muc();
-    foreach ($dm as $row) {
-        if ($row['id'] == $cate) {
-            $cateName = $row['name'];
-            break;
-        }
-    }
+    $stmt = $pdo->prepare("SELECT name FROM categories WHERE id = ?");
+    $stmt->execute([$cate]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    $cateName = $row['name'] ?? '';
 }
 
-/* Truy vấn tìm kiếm */
-$result = tim_kiem_san_pham($q, $cate);
+/* TRUY VẤN TÌM KIẾM */
+$sql = "
+    SELECT p.*, c.name AS category_name
+    FROM products p
+    LEFT JOIN categories c ON p.category_id = c.id
+    WHERE p.name LIKE ?
+";
+$params = ["%$q%"];
+
+if ($cate > 0) {
+    $sql .= " AND p.category_id = ?";
+    $params[] = $cate;
+}
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+$products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+require_once "../includes/header.php";
 ?>
 
 <div class="container mt-4">
 
-    <!-- Tiêu đề tìm kiếm -->
     <?php if ($q !== ''): ?>
-        <h4>Kết quả tìm kiếm cho từ khóa:
+        <h4>
+            Kết quả tìm kiếm cho từ khóa:
             <span class="text-primary">"<?= htmlspecialchars($q) ?>"</span>
         </h4>
-
     <?php elseif ($cate > 0): ?>
-        <h4>Sản phẩm thuộc danh mục:
+        <h4>
+            Sản phẩm thuộc danh mục:
             <span class="text-primary">"<?= htmlspecialchars($cateName) ?>"</span>
         </h4>
-
     <?php else: ?>
         <h4>Tất cả sản phẩm</h4>
     <?php endif; ?>
 
     <div class="row mt-3">
 
-        <?php if ($result->num_rows > 0): ?>
-            <?php while ($sp = $result->fetch_assoc()): ?>
+        <?php if (!empty($products)): ?>
+            <?php foreach ($products as $sp): ?>
 
                 <div class="col-md-3 mb-4">
-                    <div class="card h-100 shadow-lg border-0" style="border-radius: 15px; overflow: hidden;">
+                    <div class="card h-100 shadow-lg border-0" style="border-radius:15px; overflow:hidden;">
 
-                        <!-- Ảnh sản phẩm -->
-                        <img src="<?= BASE_URL ?>/uploads/<?= htmlspecialchars($sp['image']) ?>"
+                        <img src="../uploads/<?= htmlspecialchars($sp['image']) ?>"
                              class="card-img-top"
-                             style="height: 200px; object-fit: cover;">
+                             style="height:200px; object-fit:cover;">
 
                         <div class="card-body text-center">
                             <h6 class="mb-1"><?= htmlspecialchars($sp['name']) ?></h6>
@@ -68,25 +78,23 @@ $result = tim_kiem_san_pham($q, $cate);
                                 <?= dinh_dang_gia($sp['price']) ?>
                             </p>
 
-                            <!-- Xem chi tiết -->
-                            <a href="<?= BASE_URL ?>/user/product_details.php?id=<?= $sp['id'] ?>"
+                            <a href="product_details.php?id=<?= $sp['id'] ?>"
                                class="btn btn-primary btn-sm rounded-pill px-3">
                                 Xem chi tiết
                             </a>
 
-                            <!-- ADD to cart -->
-                            <a href="<?= BASE_URL ?>/user/cart_handler.php?action=add&id=<?= $sp['id'] ?>&quantity=1"
+                            <a href="cart_handler.php?action=add&id=<?= $sp['id'] ?>&quantity=1"
                                class="btn btn-outline-primary btn-sm rounded-pill ml-2">
                                 +
-                                <ion-icon name="cart-outline" style="font-size:18px; vertical-align:middle;"></ion-icon>
+                                <ion-icon name="cart-outline"
+                                          style="font-size:18px; vertical-align:middle;"></ion-icon>
                             </a>
                         </div>
 
                     </div>
                 </div>
 
-            <?php endwhile; ?>
-
+            <?php endforeach; ?>
         <?php else: ?>
 
             <div class="col-12 text-center text-muted mt-4">
@@ -94,8 +102,8 @@ $result = tim_kiem_san_pham($q, $cate);
             </div>
 
         <?php endif; ?>
-    </div>
 
+    </div>
 </div>
 
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+<?php require_once "../includes/footer.php"; ?>

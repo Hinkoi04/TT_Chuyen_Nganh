@@ -1,46 +1,43 @@
 <?php
-require_once __DIR__ . '/../includes/db.php';
-require_once __DIR__ . '/../includes/functions.php';
-require_once __DIR__ . '/../includes/header.php';
+require_once '../includes/db.php';
+require_once '../includes/functions.php';
+require_once '../includes/header.php';
 
-/* Base path cố định */
-$basePath = BASE_URL;
+$basePath = '/TT_Chuyen_Nganh';
 
-/* PHÂN TRANG */
 $limit = 4;
-$page  = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$page  = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $start = ($page - 1) * $limit;
 
-/* LỌC DANH MỤC */
-$cate = isset($_GET['cate']) ? intval($_GET['cate']) : 0;
+$cate = isset($_GET['cate']) ? (int)$_GET['cate'] : 0;
 
-/* TỔNG SẢN PHẨM */
 $total_products = lay_tong_san_pham($cate);
 $total_pages = ceil($total_products / $limit);
 
-/* LẤY SẢN PHẨM */
-$result = lay_san_pham_phan_trang($cate, $start, $limit);
+$result   = lay_san_pham_phan_trang($cate, $start, $limit);
+$products = $result->fetchAll();
 
-/* LẤY BANNER */
-$banner_query = lay_banner();
+$banners = lay_banner()->fetchAll();
 
-/* 🔥 LẤY TOP 4 SẢN PHẨM MỚI NHẤT */
-$latest = lay_san_pham_moi_nhat(4);
+$latest_products = lay_san_pham_moi_nhat(4)->fetchAll();
 ?>
 
-<!-- BANNER -->
-<?php if ($banner_query->num_rows > 0): ?>
-<div id="bannerSlider" class="carousel slide mb-4 shadow-lg" data-ride="carousel" data-interval="2000"
-     style="border-radius: 20px; overflow: hidden;">
+<?php if (!empty($banners)): ?>
+<div id="bannerSlider"
+     class="carousel slide mb-4 shadow-lg"
+     data-ride="carousel"
+     data-interval="2000"
+     style="width:100vw; margin-left:calc(-50vw + 50%);">
+
     <div class="carousel-inner">
-        <?php $active = 'active'; while($b = $banner_query->fetch_assoc()): ?>
-        <div class="carousel-item <?= $active ?>">
-            <img src="<?= $basePath ?>/uploads/banner/<?= htmlspecialchars($b['image']) ?>" 
-                 class="d-block w-100"
-                 style="height: 300px; object-fit: cover;">
+        <?php foreach ($banners as $i => $b): ?>
+        <div class="carousel-item <?= $i === 0 ? 'active' : '' ?>">
+            <img src="<?= $basePath ?>/uploads/banner/<?= htmlspecialchars($b['image']) ?>"
+                 style="width:100%; height:450px; object-fit:cover;">
         </div>
-        <?php $active = ''; endwhile; ?>
+        <?php endforeach; ?>
     </div>
+
     <a class="carousel-control-prev" href="#bannerSlider" role="button" data-slide="prev">
         <span class="carousel-control-prev-icon"></span>
     </a>
@@ -49,138 +46,112 @@ $latest = lay_san_pham_moi_nhat(4);
     </a>
 </div>
 <?php endif; ?>
+
+
 <style>
-    .khung-san-pham-moi {
+.khung-san-pham-moi {
     background: linear-gradient(135deg,
-        rgba(134, 185, 229, 0.55),   /* hồng nhạt */
-        rgba(0, 68, 255, 0.55)    /* xanh dương nhạt */
+        rgba(134,185,229,0.55),
+        rgba(0,68,255,0.55)
     );
     border-radius: 25px;
     padding: 25px 20px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 10px 25px rgba(0,0,0,.12);
     margin-bottom: 40px;
-    border: 1px solid rgba(255,255,255,0.5);
     backdrop-filter: blur(6px);
 }
 </style>
-<!-- 🔥 TOP 4 SẢN PHẨM MỚI NHẤT -->
-<div class="container mt-4 khung-san-pham-moi" >
-    <h3 class="text-center mb-4 text-light">🔥SẢN PHẨM MỚI NHẤT🔥</h3>
 
+<div class="container mt-4 khung-san-pham-moi">
+    <h3 class="text-center mb-4 text-light">🔥 SẢN PHẨM MỚI NHẤT 🔥</h3>
     <div class="row">
-
-        <?php while($sp = $latest->fetch_assoc()): ?>
+        <?php foreach ($latest_products as $sp): ?>
         <div class="col-md-3 mb-4">
-            <div class="card h-100 shadow-lg border-0" style="border-radius: 20px; overflow: hidden;">
-                
+            <div class="card h-100 shadow-lg border-0" style="border-radius:20px">
                 <div class="p-2 d-flex justify-content-center">
-                    <img src="<?= $basePath ?>/uploads/<?= htmlspecialchars($sp['image']) ?>" 
-                         style="width: 90%; height: 200px; object-fit: cover; border-radius: 15px;"
+                    <img src="<?= $basePath ?>/uploads/<?= htmlspecialchars($sp['image']) ?>"
+                         style="width:90%;height:200px;object-fit:cover;border-radius:15px"
                          class="shadow-sm">
                 </div>
-
                 <div class="card-body text-center">
-                    <h6 class="mb-2"><?= htmlspecialchars($sp['name']) ?></h6>
+                    <h6><?= htmlspecialchars($sp['name']) ?></h6>
                     <p class="text-muted small"><?= htmlspecialchars($sp['category_name']) ?></p>
                     <p class="text-danger font-weight-bold"><?= dinh_dang_gia($sp['price']) ?></p>
 
                     <a href="<?= $basePath ?>/user/product_details.php?id=<?= $sp['id'] ?>"
                        class="btn btn-sm btn-primary rounded-pill px-3">Xem chi tiết</a>
-                                                   <a href="<?= $basePath ?>/user/cart_handler.php?action=add&id=<?= $sp['id'] ?>&quantity=1"
-                               class="btn btn-sm btn-outline-primary border border-primary ml-2">
-                                +
-                                <ion-icon name="cart-outline"></ion-icon>
-                            </a>
-                </div>
 
+                    <a href="<?= $basePath ?>/user/cart_handler.php?action=add&id=<?= $sp['id'] ?>&quantity=1"
+                       class="btn btn-sm btn-outline-primary ml-2">
+                        +
+                        <ion-icon name="cart-outline"></ion-icon>
+                    </a>
+                </div>
             </div>
         </div>
-        <?php endwhile; ?>
-
+        <?php endforeach; ?>
     </div>
 </div>
 
-<!-- DANH SÁCH SẢN PHẨM -->
 <div class="container mt-4 bg-light shadow-lg" style="border-radius:15px">
-    <h3 class="mb-4 text-center ">DANH SÁCH SẢN PHẨM <?= $cate ? '(Theo danh mục)' : '' ?></h3>
+    <h3 class="mb-4 text-center">
+        DANH SÁCH SẢN PHẨM <?= $cate ? '(Theo danh mục)' : '' ?>
+    </h3>
 
     <div class="row">
+        <?php if (!empty($products)): ?>
+            <?php foreach ($products as $sp): ?>
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 shadow-lg border-0" style="border-radius:20px">
+                    <div class="p-2 d-flex justify-content-center">
+                        <img src="<?= $basePath ?>/uploads/<?= htmlspecialchars($sp['image']) ?>"
+                             style="width:90%;height:200px;object-fit:cover;border-radius:15px"
+                             class="shadow-sm">
+                    </div>
+                    <div class="card-body text-center">
+                        <h6><?= htmlspecialchars($sp['name']) ?></h6>
+                        <p class="text-muted"><?= htmlspecialchars($sp['category_name']) ?></p>
+                        <p class="text-danger font-weight-bold"><?= dinh_dang_gia($sp['price']) ?></p>
 
-        <?php if ($result->num_rows > 0): ?>
-            <?php while ($sp = $result->fetch_assoc()): ?>
+                        <a href="<?= $basePath ?>/user/product_details.php?id=<?= $sp['id'] ?>"
+                           class="btn btn-sm btn-primary rounded-pill px-3">Xem chi tiết</a>
 
-                <div class="col-md-3 mb-4">
-                    <div class="card h-100 shadow-lg border-0" style="border-radius: 20px; overflow: hidden;">
-
-                        <div class="p-2 d-flex justify-content-center">
-                            <img src="<?= $basePath ?>/uploads/<?= htmlspecialchars($sp['image']) ?>" 
-                                 class="shadow-sm"
-                                 style="width: 90%; height: 200px; object-fit: cover; border-radius: 15px;">
-                        </div>
-
-                        <div class="card-body text-center">
-                            <h6 class="mb-2"><?= htmlspecialchars($sp['name']) ?></h6>
-                            <p class="text-muted mb-1"><?= htmlspecialchars($sp['category_name']) ?></p>
-                            <p class="text-danger font-weight-bold"><?= dinh_dang_gia($sp['price']) ?></p>
-
-                            <a href="<?= $basePath ?>/user/product_details.php?id=<?= $sp['id'] ?>"
-                               class="btn btn-sm btn-primary rounded-pill px-3">Xem chi tiết</a>
-
-                            <a href="<?= $basePath ?>/user/cart_handler.php?action=add&id=<?= $sp['id'] ?>&quantity=1"
-                               class="btn btn-sm btn-outline-primary border border-primary ml-2">
-                                +
-                                <ion-icon name="cart-outline"></ion-icon>
-                            </a>
-                        </div>
-
+                        <a href="<?= $basePath ?>/user/cart_handler.php?action=add&id=<?= $sp['id'] ?>&quantity=1"
+                           class="btn btn-sm btn-outline-primary ml-2">
+                            +
+                            <ion-icon name="cart-outline"></ion-icon>
+                        </a>
                     </div>
                 </div>
-
-            <?php endwhile; ?>
-
+            </div>
+            <?php endforeach; ?>
         <?php else: ?>
             <div class="col-12 text-center text-muted">Không có sản phẩm nào.</div>
         <?php endif; ?>
-
     </div>
 </div>
 
-<!-- PHÂN TRANG -->
 <div class="container text-center mt-3 mb-4">
 <?php if ($total_pages > 1): ?>
-
 <?php list($startPage, $endPage) = phan_trang_tinh_trang($page, $total_pages); ?>
 
 <?php if ($page > 1): ?>
 <a class="btn btn-outline-primary btn-sm mx-1"
-   href="<?= $basePath ?>/user/index.php?page=<?= $page - 1 ?><?= $cate ? '&cate='.$cate : '' ?>"><</a>
-<?php endif; ?>
-
-<?php if ($startPage > 1): ?>
-<a class="btn btn-outline-primary btn-sm mx-1" 
-   href="<?= $basePath ?>/user/index.php?page=1<?= $cate ? '&cate='.$cate : '' ?>">1</a>
-<span class="mx-1">...</span>
+   href="<?= $basePath ?>/user/index.php?page=<?= $page - 1 ?>&cate=<?= $cate ?>"><</a>
 <?php endif; ?>
 
 <?php for ($i = $startPage; $i <= $endPage; $i++): ?>
-<a class="btn btn-sm mx-1 <?= ($i == $page ? 'btn-primary' : 'btn-outline-primary') ?>"
-   href="<?= $basePath ?>/user/index.php?page=<?= $i ?><?= $cate ? '&cate='.$cate : '' ?>">
+<a class="btn btn-sm mx-1 <?= $i == $page ? 'btn-primary' : 'btn-outline-primary' ?>"
+   href="<?= $basePath ?>/user/index.php?page=<?= $i ?>&cate=<?= $cate ?>">
    <?= $i ?>
 </a>
 <?php endfor; ?>
 
-<?php if ($endPage < $total_pages): ?>
-<span class="mx-1">...</span>
-<a class="btn btn-outline-primary btn-sm mx-1"
-   href="<?= $basePath ?>/user/index.php?page=<?= $total_pages ?><?= $cate ? '&cate='.$cate : '' ?>"><?= $total_pages ?></a>
-<?php endif; ?>
-
 <?php if ($page < $total_pages): ?>
 <a class="btn btn-outline-primary btn-sm mx-1"
-   href="<?= $basePath ?>/user/index.php?page=<?= $page + 1 ?><?= $cate ? '&cate='.$cate : '' ?>">></a>
+   href="<?= $basePath ?>/user/index.php?page=<?= $page + 1 ?>&cate=<?= $cate ?>">></a>
 <?php endif; ?>
-
 <?php endif; ?>
 </div>
 
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+<?php require_once '../includes/footer.php'; ?>

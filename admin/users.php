@@ -1,8 +1,13 @@
 <?php
 require_once 'auth_check.php';
 require_once '../includes/db.php';
-$users = $conn->query("SELECT * FROM users ORDER BY id");
+
+/* Lấy danh sách người dùng */
+$stmt = $pdo->query("SELECT * FROM users ORDER BY id");
+$users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 $page_title = "Quản lý người dùng";
+
 $page_content = '
 <h2 class="mb-3 text-center">Danh sách người dùng</h2>
 <table class="table table-bordered table-hover">
@@ -18,7 +23,8 @@ $page_content = '
     </thead>
     <tbody>
 ';
-while ($u = $users->fetch_assoc()) {
+
+foreach ($users as $u) {
     $page_content .= "
         <tr>
             <td>{$u['id']}</td>
@@ -31,17 +37,19 @@ while ($u = $users->fetch_assoc()) {
                     <ion-icon name=\"create-outline\"></ion-icon>
                 </a>
                 <a href='user_delete.php?id={$u['id']}'
-                    onclick='return confirm(\"Xóa người dùng này?\")'
-                    class='btn btn-sm btn-danger'>
+                   onclick='return confirm(\"Xóa người dùng này?\")'
+                   class='btn btn-sm btn-danger'>
                     <ion-icon name=\"trash-outline\"></ion-icon>
                 </a>
             </td>
         </tr>
     ";
 }
+
 $page_content .= "
     </tbody>
 </table>
 ";
+
 include "index.php";
 ?>

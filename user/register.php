@@ -1,14 +1,11 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+session_start();
 
-require_once __DIR__ . '/../includes/db.php';
-require_once __DIR__ . '/../includes/functions.php';
+require_once "../includes/db.php";
+require_once "../includes/functions.php";
 
 $errors = [];
 
-/* ================== XỬ LÝ ĐĂNG KÝ (CHẠY TRƯỚC HTML) ================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $fullname = trim($_POST['fullname']);
@@ -25,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $hashed = password_hash($password, PASSWORD_DEFAULT);
 
-        // kiểm tra trùng username hoặc email
         $check = $conn->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
         $check->bind_param("ss", $username, $email);
         $check->execute();
@@ -35,7 +31,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = "Tên đăng nhập hoặc email đã tồn tại.";
         } else {
 
-            // thêm vào DB
             $stmt = $conn->prepare("
                 INSERT INTO users (fullname, username, email, password, address)
                 VALUES (?, ?, ?, ?, ?)
@@ -43,7 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param("sssss", $fullname, $username, $email, $hashed, $address);
 
             if ($stmt->execute()) {
-                chuyen_trang('/TT_Chuyen_Nganh/user/login.php');  // chạy 100% không lỗi
+                header("Location: login.php");
+                exit;
             } else {
                 $errors[] = "Đăng ký thất bại, vui lòng thử lại.";
             }
@@ -53,16 +49,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $check->close();
     }
 }
+
+require_once "../includes/header.php";
 ?>
 
-<?php require_once __DIR__ . '/../includes/header.php'; ?>
-
-<div class="container col-md-5 col-sm-8 col-xs-10 border p-4 mt-4">
+<div class="container col-md-5 col-sm-8 col-xs-10 border p-4 mt-4 bg-white rounded shadow-sm">
 
     <h2 class="text-center mb-3">Đăng ký tài khoản</h2>
 
     <?php if (!empty($errors)): ?>
-        <div class="alert alert-danger"><?= htmlspecialchars($errors[0]) ?></div>
+        <div class="alert alert-danger text-center">
+            <?= htmlspecialchars($errors[0]) ?>
+        </div>
     <?php endif; ?>
 
     <form method="POST">
@@ -92,14 +90,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <textarea name="address" class="form-control"></textarea>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block mb-3">Đăng ký</button>
+        <button type="submit" class="btn btn-primary btn-block mb-3">
+            Đăng ký
+        </button>
 
         <p class="text-center">
-            Đã có tài khoản? <a href="/user/login.php">Đăng nhập</a>
+            Đã có tài khoản?
+            <a href="login.php">Đăng nhập</a>
         </p>
 
     </form>
 
 </div>
 
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+<?php require_once "../includes/footer.php"; ?>

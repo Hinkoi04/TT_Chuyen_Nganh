@@ -2,16 +2,17 @@
 require_once 'auth_check.php';
 require_once '../includes/db.php';
 
-$id = $_GET['id'];
-if (!is_numeric($id)) die('ID không hợp lệ');
+$id = $_GET['id'] ?? 0;
+if (!is_numeric($id)) {
+    die('ID không hợp lệ');
+}
 
-$stmt = $conn->prepare("DELETE FROM products WHERE id = ?");
-$stmt->bind_param("i", $id);
+$stmt = $pdo->prepare("DELETE FROM products WHERE id = ?");
+$success = $stmt->execute([$id]);
 
-if ($stmt->execute()) {
+if ($success) {
     header("Location: products.php");
     exit();
 } else {
-    echo "Lỗi khi xóa sản phẩm: " . $stmt->error;
+    echo "Lỗi khi xóa sản phẩm";
 }
-$stmt->close();

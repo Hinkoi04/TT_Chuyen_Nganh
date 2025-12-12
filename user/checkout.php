@@ -1,149 +1,103 @@
 <?php
+session_start();
 require_once __DIR__ . '/../includes/db.php';
-require_once __DIR__ . '/../includes/functions.php';
-
-if (!defined('BASE_URL')) {
-    define('BASE_URL', '/TT_Chuyen_Nganh');
-}
-
-/* =============================
-   KIỂM TRA ĐĂNG NHẬP & GIỎ HÀNG
-   (PHẢI ĐẶT TRƯỚC HEADER)
-============================= */
+require_once __DIR__ . '/../includes/header.php';
 
 if (!isset($_SESSION['user_id'])) {
-    chuyen_trang('/user/login.php');
+    header("Location: login.php");
+    exit;
 }
 
 if (empty($_SESSION['cart'])) {
-    chuyen_trang('/user/index.php');
+    header("Location: index.php");
+    exit;
 }
 
-$checkout_message = "";
-
-/* =============================
-   XỬ LÝ ĐẶT HÀNG (POST)
-============================= */
+$message = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $customer_name    = trim($_POST['customer_name']);
-    $customer_address = trim($_POST['customer_address']);
-    $customer_phone   = trim($_POST['customer_phone']);
-    $user_id          = $_SESSION['user_id'];
+    $name    = trim($_POST['customer_name']);
+    $address = trim($_POST['customer_address']);
+    $phone   = trim($_POST['customer_phone']);
+    $user_id = $_SESSION['user_id'];
 
-    $cart = $_SESSION['cart'];
-    $product_ids = implode(",", array_keys($cart));
+    if ($name === '' || $address === '' || $phone === '') {
+        $message = "<div class='alert alert-danger'>Vui lòng nhập đầy đủ thông tin.</div>";
+    } else {
 
-    // Lấy giá sản phẩm
-    $sql = "SELECT id, price FROM products WHERE id IN ($product_ids)";
-    $result = $conn->query($sql);
+        $cart = $_SESSION['cart'];
+        $ids  = array_keys($cart);
+        $in   = implode(',', array_fill(0, count($ids), '?'));
 
-    $total_amount = 0;
-    while ($p = $result->fetch_assoc()) {
-        $qty = $cart[$p['id']]['qty'];
-        $total_amount += $p['price'] * $qty;
-    }
+        $stmt = $pdo->prepare("SELECT id, price FROM products WHERE id IN ($in)");
+        $stmt->execute($ids);
+        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Bắt đầu transaction
-    $conn->begin_transaction();
-
-    try {
-
-        // Tạo đơn hàng
-        $stmt = $conn->prepare("
-            INSERT INTO orders (user_id, total_amount, customer_name, customer_address, customer_phone)
-            VALUES (?, ?, ?, ?, ?)
-        ");
-        $stmt->bind_param("idsss", $user_id, $total_amount, $customer_name, $customer_address, $customer_phone);
-        $stmt->execute();
-        $order_id = $conn->insert_id;
-        $stmt->close();
-
-        // Thêm chi tiết đơn hàng
-        $stmt_detail = $conn->prepare("
-            INSERT INTO order_details (order_id, product_id, quantity, price)
-            VALUES (?, ?, ?, ?)
-        ");
-
-        $result->data_seek(0);
-        while ($p = $result->fetch_assoc()) {
-            $pid = $p['id'];
-            $qty = $cart[$pid]['qty'];
-            $price = $p['price'];
-
-            $stmt_detail->bind_param("iiid", $order_id, $pid, $qty, $price);
-            $stmt_detail->execute();
+        $total = 0;
+        foreach ($products as $p) {
+            $qty = $cart[$p['id']]['qty'];
+            $total += $p['price'] * $qty;
         }
 
-        $stmt_detail->close();
+        try {
+            $pdo->beginTransaction();
 
-        // Xóa giỏ hàng session và DB
-        unset($_SESSION['cart']);
+            $orderStmt = $pdo->prepare("
+                INSERT INTO orders (user_id, total_amount, customer_name, customer_address, customer_phone)
+                VALUES (?, ?, ?, ?, ?)
+            ");
+            $orderStmt->execute([$user_id, $total, $name, $address, $phone]);
+            $order_id = $pdo->lastInsertId();
 
-        $clear = $conn->prepare("DELETE FROM user_carts WHERE user_id = ?");
-        $clear->bind_param("i", $user_id);
-        $clear->execute();
-        $clear->close();
+            $detailStmt = $pdo->prepare("
+                INSERT INTO order_details (order_id, product_id, quantity, price)
+                VALUES (?, ?, ?, ?)
+            ");
 
-        $conn->commit();
+            foreach ($products as $p) {
+                $detailStmt->execute([
+                    $order_id,
+                    $p['id'],
+                    $cart[$p['id']]['qty'],
+                    $p['price']
+                ]);
+            }
 
-        $checkout_message = "
-            <div class='alert alert-success text-center'>
-                ✔ Đặt hàng thành công! Cảm ơn bạn đã mua sắm.
-            </div>
-        ";
+            $pdo->commit();
+            unset($_SESSION['cart']);
 
-    } catch (Exception $e) {
+            $message = "<div class='alert alert-success text-center'>✔ Đặt hàng thành công!</div>";
 
-        $conn->rollback();
-
-        $checkout_message = "
-            <div class='alert alert-danger text-center'>
-                ❌ Đã xảy ra lỗi, vui lòng thử lại.
-            </div>
-        ";
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            $message = "<div class='alert alert-danger'>❌ Lỗi khi đặt hàng.</div>";
+        }
     }
 }
-
-/* =============================
-   GỌI HEADER SAU KHI MỌI REDIRECT ĐÃ HOÀN TẤT
-============================= */
-require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="container col-md-6 col-sm-10">
+<div class="container col-md-6 mt-4">
+    <h2 class="text-center mb-3">Thanh toán</h2>
+    <?= $message ?>
 
-    <h2 class="text-center mb-4">Thanh toán</h2>
-
-    <?= $checkout_message ?>
-
-    <?php if (empty($checkout_message)): ?>
+    <?php if ($message === ""): ?>
     <form method="POST">
-
-        <h4 class="mb-3">Thông tin giao hàng</h4>
-
         <div class="form-group">
             <label>Họ và tên</label>
             <input type="text" name="customer_name" class="form-control" required>
         </div>
         <div class="form-group">
-            <label>Địa chỉ giao hàng</label>
-            <textarea name="customer_address" class="form-control" rows="2" required></textarea>
+            <label>Địa chỉ</label>
+            <textarea name="customer_address" class="form-control" required></textarea>
         </div>
-
         <div class="form-group">
             <label>Số điện thoại</label>
             <input type="text" name="customer_phone" class="form-control" required>
         </div>
-
-        <button type="submit" class="btn btn-success btn-block mt-3">
-            Xác nhận đặt hàng
-        </button>
-
+        <button class="btn btn-success btn-block mt-3">Xác nhận đặt hàng</button>
     </form>
     <?php endif; ?>
-
 </div>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

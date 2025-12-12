@@ -1,8 +1,16 @@
 <?php
 require_once 'auth_check.php';
 require_once '../includes/db.php';
-$result = $conn->query("SELECT id, name, price, stock_quantity FROM products ORDER BY id DESC");
+
+$stmt = $pdo->query("
+    SELECT id, name, price, stock_quantity 
+    FROM products 
+    ORDER BY id DESC
+");
+$products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 $page_title = "Quản lý sản phẩm";
+
 $page_content = '
     <h1 class="text-center mb-4">Danh sách sản phẩm</h1>
 
@@ -12,7 +20,7 @@ $page_content = '
     </a>
 
     <table class="table table-bordered table-hover">
-        <thead class="thead bg-primary">
+        <thead class="thead bg-primary text-light">
             <tr>
                 <th>ID</th>
                 <th>Tên sản phẩm</th>
@@ -23,11 +31,12 @@ $page_content = '
         </thead>
         <tbody>
 ';
-while ($row = $result->fetch_assoc()) {
-    $id      = $row['id'];
-    $name    = htmlspecialchars($row['name']);
-    $price   = number_format($row['price']) . "₫";
-    $stock   = intval($row['stock_quantity']);
+
+foreach ($products as $row) {
+    $id    = $row['id'];
+    $name  = htmlspecialchars($row['name']);
+    $price = number_format($row['price']) . "₫";
+    $stock = intval($row['stock_quantity']);
 
     $page_content .= "
         <tr>
@@ -37,13 +46,13 @@ while ($row = $result->fetch_assoc()) {
             <td>{$stock}</td>
             <td>
                 <a href='product_edit.php?id={$id}' class='btn btn-info btn-sm'>
-                    <ion-icon name=\"create-outline\"></ion-icon>
+                    <ion-icon name='create-outline'></ion-icon>
                 </a>
 
                 <a href='product_delete.php?id={$id}'
                    onclick='return confirm(\"Bạn chắc chắn muốn xóa sản phẩm này?\")'
                    class='btn btn-danger btn-sm'>
-                    <ion-icon name=\"trash-outline\"></ion-icon>
+                    <ion-icon name='trash-outline'></ion-icon>
                 </a>
             </td>
         </tr>

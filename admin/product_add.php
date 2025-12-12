@@ -6,18 +6,18 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Kiểm tra quyền admin
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-    header("Location: ../login.php");
+    header("Location: ../user/login.php");
     exit();
 }
 
 $message = "";
 
-// Lấy danh mục
-$categories = $conn->query("SELECT * FROM categories ORDER BY name ASC");
+/* LẤY DANH MỤC */
+$stmtCat = $pdo->query("SELECT * FROM categories ORDER BY name ASC");
+$categories = $stmtCat->fetchAll(PDO::FETCH_ASSOC);
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $name = trim($_POST['name']);
     $description = trim($_POST['description']);
@@ -25,19 +25,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stock_quantity = intval($_POST['stock_quantity']);
     $category_id = intval($_POST['category_id']);
 
-    // Thông số kỹ thuật
     $cpu = $_POST['cpu'] ?: null;
     $ram = $_POST['ram'] ?: null;
     $storage = $_POST['storage'] ?: null;
     $gpu = $_POST['gpu'] ?: null;
     $screen = $_POST['screen'] ?: null;
 
-    // ---------------------------
-    // ẢNH ĐẠI DIỆN (thumbnail)
-    // ---------------------------
     $image_name = "";
     if (!empty($_FILES['image']['name'])) {
-
         $target_dir = "../uploads/";
         if (!is_dir($target_dir)) mkdir($target_dir, 0777, true);
 
@@ -45,52 +40,48 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         move_uploaded_file($_FILES['image']['tmp_name'], $target_dir . $image_name);
     }
 
-    // Insert sản phẩm
-    $stmt = $conn->prepare("
-        INSERT INTO products 
-        (category_id, name, description, price, image, stock_quantity, cpu, ram, storage, gpu, screen)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ");
+    try {
+        $pdo->beginTransaction();
 
-    $stmt->bind_param(
-        "issdsisssss",
-        $category_id, $name, $description, $price, $image_name,
-        $stock_quantity, $cpu, $ram, $storage, $gpu, $screen
-    );
+        $stmt = $pdo->prepare("
+            INSERT INTO products 
+            (category_id, name, description, price, image, stock_quantity, cpu, ram, storage, gpu, screen)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+        $stmt->execute([
+            $category_id, $name, $description, $price, $image_name,
+            $stock_quantity, $cpu, $ram, $storage, $gpu, $screen
+        ]);
 
-    if ($stmt->execute()) {
+        $product_id = $pdo->lastInsertId();
 
-        $product_id = $stmt->insert_id;
-
-        // ---------------------------
-        // ẢNH CHI TIẾT (nhiều ảnh)
-        // ---------------------------
         if (!empty($_FILES['images']['name'][0])) {
 
             $detail_dir = "../uploads/products/";
             if (!is_dir($detail_dir)) mkdir($detail_dir, 0777, true);
 
-            foreach ($_FILES['images']['name'] as $i => $img) {
+            $stmtImg = $pdo->prepare("
+                INSERT INTO product_images (product_id, image)
+                VALUES (?, ?)
+            ");
 
+            foreach ($_FILES['images']['name'] as $i => $img) {
                 $tmp = $_FILES['images']['tmp_name'][$i];
                 $newName = time() . "_" . $img;
 
                 move_uploaded_file($tmp, $detail_dir . $newName);
-
-                $stmt_img = $conn->prepare("INSERT INTO product_images (product_id, image) VALUES (?, ?)");
-                $stmt_img->bind_param("is", $product_id, $newName);
-                $stmt_img->execute();
+                $stmtImg->execute([$product_id, $newName]);
             }
         }
 
-        $message = "<div class='alert alert-success mt-3'>✅ Thêm sản phẩm thành công!</div>";
+        $pdo->commit();
         header("Location: products.php?msg=added");
-    exit();
-    } else {
-        $message = "<div class='alert alert-danger mt-3'>❌ Lỗi: {$stmt->error}</div>";
-    }
+        exit();
 
-    $stmt->close();
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        $message = "<div class='alert alert-danger mt-3'>❌ Lỗi thêm sản phẩm</div>";
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -118,9 +109,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <label>Danh mục</label>
             <select name="category_id" class="form-control" required>
                 <option value="">-- Chọn danh mục --</option>
-                <?php while ($cat = $categories->fetch_assoc()): ?>
+                <?php foreach ($categories as $cat): ?>
                     <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></option>
-                <?php endwhile; ?>
+                <?php endforeach; ?>
             </select>
         </div>
 
@@ -139,26 +130,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="number" name="stock_quantity" class="form-control" required>
         </div>
 
-        <!-- ẢNH ĐẠI DIỆN -->
         <div class="form-group">
-            <label>Ảnh đại diện (thumbnail)</label>
+            <label>Ảnh đại diện</label>
             <input type="file" name="image" class="form-control-file" required>
         </div>
 
-        <!-- ẢNH CHI TIẾT -->
         <div class="form-group">
-            <label>Ảnh chi tiết (có thể chọn nhiều ảnh)</label>
+            <label>Ảnh chi tiết</label>
             <input type="file" name="images[]" class="form-control-file" multiple>
         </div>
 
         <hr>
         <h5>⚙️ Thông số kỹ thuật</h5>
 
-        <div class="form-group"><label>CPU</label><input type="text" name="cpu" class="form-control"></div>
-        <div class="form-group"><label>RAM</label><input type="text" name="ram" class="form-control"></div>
-        <div class="form-group"><label>Storage</label><input type="text" name="storage" class="form-control"></div>
-        <div class="form-group"><label>GPU</label><input type="text" name="gpu" class="form-control"></div>
-        <div class="form-group"><label>Màn hình</label><input type="text" name="screen" class="form-control"></div>
+        <input type="text" name="cpu" class="form-control mb-2" placeholder="CPU">
+        <input type="text" name="ram" class="form-control mb-2" placeholder="RAM">
+        <input type="text" name="storage" class="form-control mb-2" placeholder="Storage">
+        <input type="text" name="gpu" class="form-control mb-2" placeholder="GPU">
+        <input type="text" name="screen" class="form-control mb-3" placeholder="Màn hình">
 
         <button type="submit" class="btn btn-success">Thêm sản phẩm</button>
         <a href="products.php" class="btn btn-secondary">Quay lại</a>
