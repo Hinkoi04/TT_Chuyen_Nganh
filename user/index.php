@@ -3,7 +3,6 @@ require_once '../includes/db.php';
 require_once '../includes/functions.php';
 require_once '../includes/header.php';
 
-$basePath = '/TT_Chuyen_Nganh';
 
 $limit = 4;
 $page  = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
@@ -32,7 +31,7 @@ $latest_products = lay_san_pham_moi_nhat(4)->fetchAll();
     <div class="carousel-inner">
         <?php foreach ($banners as $i => $b): ?>
         <div class="carousel-item <?= $i === 0 ? 'active' : '' ?>">
-            <img src="<?= $basePath ?>/uploads/banner/<?= htmlspecialchars($b['image']) ?>"
+            <img src="../uploads/banner/<?= htmlspecialchars($b['image']) ?>"
                  style="width:100%; height:450px; object-fit:cover;">
         </div>
         <?php endforeach; ?>
@@ -69,7 +68,7 @@ $latest_products = lay_san_pham_moi_nhat(4)->fetchAll();
         <div class="col-md-3 mb-4">
             <div class="card h-100 shadow-lg border-0" style="border-radius:20px">
                 <div class="p-2 d-flex justify-content-center">
-                    <img src="<?= $basePath ?>/uploads/<?= htmlspecialchars($sp['image']) ?>"
+                    <img src="../uploads/<?= htmlspecialchars($sp['image']) ?>"
                          style="width:90%;height:200px;object-fit:cover;border-radius:15px"
                          class="shadow-sm">
                 </div>
@@ -78,10 +77,10 @@ $latest_products = lay_san_pham_moi_nhat(4)->fetchAll();
                     <p class="text-muted small"><?= htmlspecialchars($sp['category_name']) ?></p>
                     <p class="text-danger font-weight-bold"><?= dinh_dang_gia($sp['price']) ?></p>
 
-                    <a href="<?= $basePath ?>/user/product_details.php?id=<?= $sp['id'] ?>"
+                    <a href="../user/product_details.php?id=<?= $sp['id'] ?>"
                        class="btn btn-sm btn-primary rounded-pill px-3">Xem chi tiết</a>
 
-                    <a href="<?= $basePath ?>/user/cart_handler.php?action=add&id=<?= $sp['id'] ?>&quantity=1"
+                    <a href="../user/cart_handler.php?action=add&id=<?= $sp['id'] ?>&quantity=1"
                        class="btn btn-sm btn-outline-primary ml-2">
                         +
                         <ion-icon name="cart-outline"></ion-icon>
@@ -104,7 +103,7 @@ $latest_products = lay_san_pham_moi_nhat(4)->fetchAll();
             <div class="col-md-3 mb-4">
                 <div class="card h-100 shadow-lg border-0" style="border-radius:20px">
                     <div class="p-2 d-flex justify-content-center">
-                        <img src="<?= $basePath ?>/uploads/<?= htmlspecialchars($sp['image']) ?>"
+                        <img src="../uploads/<?= htmlspecialchars($sp['image']) ?>"
                              style="width:90%;height:200px;object-fit:cover;border-radius:15px"
                              class="shadow-sm">
                     </div>
@@ -113,10 +112,10 @@ $latest_products = lay_san_pham_moi_nhat(4)->fetchAll();
                         <p class="text-muted"><?= htmlspecialchars($sp['category_name']) ?></p>
                         <p class="text-danger font-weight-bold"><?= dinh_dang_gia($sp['price']) ?></p>
 
-                        <a href="<?= $basePath ?>/user/product_details.php?id=<?= $sp['id'] ?>"
+                        <a href="../user/product_details.php?id=<?= $sp['id'] ?>"
                            class="btn btn-sm btn-primary rounded-pill px-3">Xem chi tiết</a>
 
-                        <a href="<?= $basePath ?>/user/cart_handler.php?action=add&id=<?= $sp['id'] ?>&quantity=1"
+                        <a href="../user/cart_handler.php?action=add&id=<?= $sp['id'] ?>&quantity=1"
                            class="btn btn-sm btn-outline-primary ml-2">
                             +
                             <ion-icon name="cart-outline"></ion-icon>
@@ -137,19 +136,19 @@ $latest_products = lay_san_pham_moi_nhat(4)->fetchAll();
 
 <?php if ($page > 1): ?>
 <a class="btn btn-outline-primary btn-sm mx-1"
-   href="<?= $basePath ?>/user/index.php?page=<?= $page - 1 ?>&cate=<?= $cate ?>"><</a>
+   href="../user/index.php?page=<?= $page - 1 ?>&cate=<?= $cate ?>"><</a>
 <?php endif; ?>
 
 <?php for ($i = $startPage; $i <= $endPage; $i++): ?>
 <a class="btn btn-sm mx-1 <?= $i == $page ? 'btn-primary' : 'btn-outline-primary' ?>"
-   href="<?= $basePath ?>/user/index.php?page=<?= $i ?>&cate=<?= $cate ?>">
+   href="../user/index.php?page=<?= $i ?>&cate=<?= $cate ?>">
    <?= $i ?>
 </a>
 <?php endfor; ?>
 
 <?php if ($page < $total_pages): ?>
 <a class="btn btn-outline-primary btn-sm mx-1"
-   href="<?= $basePath ?>/user/index.php?page=<?= $page + 1 ?>&cate=<?= $cate ?>">></a>
+   href="../user/index.php?page=<?= $page + 1 ?>&cate=<?= $cate ?>">></a>
 <?php endif; ?>
 <?php endif; ?>
 </div>
