@@ -59,6 +59,10 @@ $latest_products = lay_san_pham_moi_nhat(4)->fetchAll();
     margin-bottom: 40px;
     backdrop-filter: blur(6px);
 }
+#product-list {
+    scroll-margin-top: 120px;
+}
+
 </style>
 
 <div class="container mt-4 khung-san-pham-moi">
@@ -93,7 +97,7 @@ $latest_products = lay_san_pham_moi_nhat(4)->fetchAll();
 </div>
 
 <div class="container mt-4 bg-light shadow-lg" style="border-radius:15px">
-    <h3 class="mb-4 text-center">
+    <h3 class="mb-4 text-center" id="product-list">
         DANH SÁCH SẢN PHẨM <?= $cate ? '(Theo danh mục)' : '' ?>
     </h3>
 
@@ -136,19 +140,19 @@ $latest_products = lay_san_pham_moi_nhat(4)->fetchAll();
 
 <?php if ($page > 1): ?>
 <a class="btn btn-outline-primary btn-sm mx-1"
-   href="../user/index.php?page=<?= $page - 1 ?>&cate=<?= $cate ?>"><</a>
+   href="../user/index.php?page=<?= $page - 1 ?>&cate=<?= $cate ?>#product-list"><</a>
 <?php endif; ?>
 
 <?php for ($i = $startPage; $i <= $endPage; $i++): ?>
 <a class="btn btn-sm mx-1 <?= $i == $page ? 'btn-primary' : 'btn-outline-primary' ?>"
-   href="../user/index.php?page=<?= $i ?>&cate=<?= $cate ?>">
+   href="../user/index.php?page=<?= $i ?>&cate=<?= $cate ?>#product-list">
    <?= $i ?>
 </a>
 <?php endfor; ?>
 
 <?php if ($page < $total_pages): ?>
 <a class="btn btn-outline-primary btn-sm mx-1"
-   href="../user/index.php?page=<?= $page + 1 ?>&cate=<?= $cate ?>">></a>
+   href="../user/index.php?page=<?= $page + 1 ?>&cate=<?= $cate ?>#product-list">></a>
 <?php endif; ?>
 <?php endif; ?>
 </div>
