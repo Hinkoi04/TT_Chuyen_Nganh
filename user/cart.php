@@ -30,7 +30,7 @@ if (!empty($_SESSION['cart'])) {
 <?php endif; ?>
 
 <div class="row mb-3 border-bottom">
-    <a href="<?= BASE_URL ?>/user/index.php" class="btn btn-primary ml-3 mb-1">
+    <a href="../user/index.php" class="btn btn-primary ml-3 mb-1">
         <ion-icon name="arrow-back-sharp"></ion-icon>
     </a>
     <h3 class="m-auto">Giỏ hàng của bạn</h3>
@@ -75,7 +75,7 @@ $total_price = 0;
         ?>
         <tr>
             <td>
-                <img src="<?= BASE_URL ?>/uploads/<?= htmlspecialchars($row['image']) ?>"
+                <img src="../uploads/<?= htmlspecialchars($row['image']) ?>"
                      width="55" height="55"
                      class="rounded" style="object-fit:cover;">
             </td>
@@ -84,7 +84,7 @@ $total_price = 0;
             <td><?= dinh_dang_gia($row['price']) ?></td>
 
             <td>
-                <form action="<?= BASE_URL ?>/user/cart_handler.php" method="post" class="form-inline">
+                <form action="../user/cart_handler.php" method="post" class="form-inline">
                     <input type="hidden" name="action" value="update">
                     <input type="hidden" name="product_id" value="<?= $row['id'] ?>">
 
@@ -100,7 +100,7 @@ $total_price = 0;
             <td><?= dinh_dang_gia($subtotal) ?></td>
 
             <td>
-                <a href="<?= BASE_URL ?>/user/cart_handler.php?action=remove&id=<?= $row['id'] ?>"
+                <a href="../user/cart_handler.php?action=remove&id=<?= $row['id'] ?>"
                    class="btn btn-danger btn-sm"
                    onclick="return confirm('Xóa sản phẩm này?');">
                     <ion-icon name="trash-outline"></ion-icon>
@@ -119,7 +119,7 @@ $total_price = 0;
 </table>
 
 <div class="text-center mb-4">
-    <a href="<?= BASE_URL ?>/user/checkout.php" class="btn btn-success px-4 py-2">
+    <a href="../user/checkout.php" class="btn btn-success px-4 py-2">
         Tiến hành thanh toán
     </a>
 </div>
