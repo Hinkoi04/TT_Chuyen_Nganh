@@ -1,7 +1,6 @@
 </div>
-<footer class="bg-primary text-white p-3 mt-4 ">
+<footer class="bg-pri text-white p-3 mt-4 ">
     <div class="row ">
-        <div class="col-2"></div>
         <div class="col-3">
             <h3>HD Store</h3>
             <p>Về chúng tôi</p>
@@ -17,6 +16,17 @@
             <h3>Hỗ trợ bảo hành</h3>
             <p>Hotline: 0397319419</p>
             <p>Email: dovanhin04@gmail.com</p>
+        </div>
+                <div class="col-md-3">
+            <h3>Vị trí</h3>
+            <iframe
+                src="https://www.google.com/maps?q=Saigon%20Technology%20University&output=embed"
+                width="80%"
+                height="200px"
+                style="border:0;"
+                allowfullscreen=""
+                loading="lazy">
+            </iframe>
         </div>
     </div>
     <div class="container-fluid border-top border-dark ">
